@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Users - Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        /* Custom Styles for enhanced UI */
+        body {
+            background-color: #f0f2f5; /* Light gray background */
+            font-family: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* Added Inter as primary font */
+            color: #333;
+            line-height: 1.6; /* Base line-height for better readability */
+        }
+
+        .navbar {
+            background: rgba(0, 0, 139, 0.8) !important; /* Slightly more opaque dark blue */
+            border: none !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; /* Softer shadow */
+            transition: all 0.3s ease;
+            border-radius: 0.75rem; /* Rounded navbar edges */
+        }
+        .navbar-brand, .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.95) !important; /* Brighter white for text */
+            font-weight: 500;
+            transition: color 0.3s ease, transform 0.2s ease;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #ffffff !important; /* Pure white on hover */
+            transform: translateY(-2px); /* Slight lift on hover */
+        }
+        .navbar.scrolled {
+            background: rgba(0, 0, 100, 0.9) !important; /* Darker blue when scrolled */
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+        }
+
+
+        .container.mt-5 {
+            padding-top: 2rem; /* Adjusted top padding */
+        }
+
+        h2.text-center {
+            font-weight: 700; /* Bolder title */
+            color: #002244; /* Darker blue for title */
+            margin-bottom: 2rem; /* Adjusted space below title */
+        }
+
+        .card {
+            border: none;
+            border-radius: 0.75rem; /* More rounded corners for cards */
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: #ffffff; /* White background for cards */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .card:hover {
+            transform: translateY(-6px); /* Lift card on hover */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Enhanced shadow on hover */
+        }
+
+        .card-body {
+            padding: 1.5rem; /* Adjusted internal padding */
+        }
+
+        .card-title {
+            font-size: 1.4rem; /* Slightly adjusted user name size */
+            font-weight: 600;
+            color: #003366; /* Slightly darker blue */
+            margin-bottom: 0.75rem;
+        }
+        .card-title .bi { /* Icon styling within card title */
+            font-size: 1.6rem;
+            vertical-align: middle;
+        }
+
+        .card-text {
+            font-size: 0.9rem; /* Slightly smaller text for compactness */
+            color: #555;
+            margin-bottom: 0.4rem;
+        }
+        .card-text .bi { /* Icon styling for card text */
+            color: #007bff; /* Blue icons */
+            margin-right: 0.5rem;
+        }
+
+        .card-text strong {
+            color: #333;
+        }
+
+        .btn { /* General button styling */
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #545b62;
+            border-color: #545b62;
+        }
+        .btn-danger { /* For delete button in dropdown */
+             background-color: #dc3545;
+             border-color: #dc3545;
+             color: white;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+            color: white;
+        }
+
+
+        .dropdown-menu {
+            border-radius: 0.5rem; /* Rounded dropdown menu */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .dropdown-item {
+            padding: 0.6rem 1.2rem;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            font-size: 0.9rem;
+        }
+        .dropdown-item .bi {
+            margin-right: 0.5rem;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f0f2f5; /* Light gray hover */
+        }
+        .dropdown-item.text-danger:hover, /* Adjusted for consistency */
+        .dropdown-item button.text-danger:hover {
+            background-color: #f8d7da !important;
+            color: #721c24 !important;
+        }
+        .dropdown-item button { /* Ensuring dropdown buttons fill item */
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 0;
+            color: inherit;
+        }
+         .dropdown-item button.text-danger {
+            color: #dc3545 !important;
+        }
+
+
+        /* Enhanced Modal specific styles */
+        .modal-content {
+            border-radius: 0.75rem; /* Slightly less rounded for a sharper look */
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); /* Softer, more diffused shadow */
+            border: none; /* Remove default border */
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #0056b3 0%, #007bff 100%); /* Gradient header */
+            color: white;
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+            border-bottom: none; /* Remove border */
+            padding: 1.25rem 1.5rem;
+            align-items: center; /* Center title and close button */
+        }
+        .modal-header .bi-person-lines-fill { /* Icon for modal header */
+            font-size: 1.5rem;
+            margin-right: 0.75rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-size: 1.25rem; /* Slightly larger title */
+        }
+
+        .modal-header .btn-close {
+            filter: invert(1) brightness(1.5); /* Make close button more prominent */
+            opacity: 0.9;
+            transition: opacity 0.2s ease;
+        }
+        .modal-header .btn-close:hover {
+            opacity: 1;
+        }
+
+        .modal-body {
+            padding: 1.75rem 2rem; /* Increased padding for more space */
+            background-color: #f8f9fa; /* Light off-white background for body */
+        }
+
+        /* Removed p tag styling from modal-body as info-grid handles layout */
+        /* .modal-body p {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            color: #495057;
+        } */
+
+        .modal-body strong {
+            color: #003366; /* Dark blue for strong tags, matching theme */
+            font-weight: 600;
+            margin-right: 0.5rem; /* Space between label and value */
+        }
+        .modal-body .info-grid { /* For better layout of user details */
+            display: grid;
+            grid-template-columns: auto 1fr; /* Icon column, Content column */
+            gap: 0.75rem 1rem; /* Row and column gap, reduced column gap slightly */
+            align-items: center; /* Vertically center items in each row */
+        }
+        .modal-body .info-grid .bi { /* Icons in modal body */
+            color: #007bff; /* Bootstrap primary blue */
+            font-size: 1.2rem; /* Slightly larger icon */
+            justify-self: center; /* Center icon in its cell if needed */
+        }
+         .modal-body .info-grid > div { /* Style for the content part of the grid row */
+            font-size: 1rem;
+            color: #495057;
+        }
+
+
+        .modal-footer {
+            border-top: 1px solid #dee2e6; /* Standard separator */
+            padding: 1rem 1.5rem;
+            background-color: #ffffff; /* White footer */
+            border-bottom-left-radius: 0.75rem;
+            border-bottom-right-radius: 0.75rem;
+        }
+        .modal-footer .btn { /* Styling for buttons in footer */
+            padding: 0.6rem 1.2rem;
+        }
+    </style>
+</head>
+<body>
+<!-- Sticky Navbar -->
+<nav class="navbar navbar-expand-lg mx-auto mt-3 px-4 py-2"
+    style="width: 95%; max-width: 1400px; position: sticky; top: 20px; z-index: 1030;">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="/admin/home"><i class="bi bi-shield-lock-fill me-2"></i>InsuranceApp</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/admin/add-agent}" ><i class="bi bi-person-plus-fill me-1"></i>Create Agent</a></li>
+                <li class="nav-item"><a class="nav-link active" th:href="@{/admin/users}"><i class="bi bi-people-fill me-1"></i>Manage Users</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/logout}"><i class="bi bi-box-arrow-right me-1"></i>Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">All Registered Users</h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <!-- User Card Example (Repeat for each user) -->
+        <div class="col" th:each="user : ${users}">
+            <div class="card h-100"> <!-- Removed shadow and rounded here, controlled by CSS -->
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-person-circle me-2"></i><span th:text="${user.name}">User Name</span></h5>
+                    <p class="card-text"><i class="bi bi-envelope-fill"></i><strong>Email:</strong> <span th:text="${user.email}">email@example.com</span></p>
+                    <p class="card-text"><i class="bi bi-key-fill"></i><strong>User ID:</strong> <span th:text="${user.id}">123</span></p> <!-- Changed icon -->
+                    <p class="card-text"><i class="bi bi-shield-check"></i><strong>Role:</strong> <span th:text="${user.role}">USER</span></p> <!-- Changed icon -->
+                    <hr class="my-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button class="btn btn-primary btn-sm"
+                                data-bs-toggle="modal"
+                                th:attr="data-bs-target='#viewModal_' + ${user.id}"> <!-- Corrected th:attr for dynamic ID -->
+                            <i class="bi bi-eye-fill me-1"></i> View Details
+                        </button>
+
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-gear-fill me-1"></i> Manage
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <!-- Confirm dialog is tricky with Thymeleaf forms, typically JS is better. -->
+                                    <!-- Simplified for now, consider a JS confirmation modal for better UX -->
+                                    <form th:action="@{/admin/delete-user}" method="post" onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');" style="margin:0;">
+                                        <input type="hidden" name="id" th:value="${user.id}" />
+                                        <button class="dropdown-item" type="submit"><i class="bi bi-trash-fill text-danger"></i><span class="text-danger">Delete User</span></button>
+                                    </form>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form th:action="@{/admin/update-role}" method="post" style="margin:0;">
+                                        <input type="hidden" name="id" th:value="${user.id}" />
+                                        <input type="hidden" name="role" value="AGENT" />
+                                        <button class="dropdown-item" type="submit" th:disabled="${user.role == 'AGENT'}"><i class="bi bi-person-check-fill text-success"></i>Promote to Agent</button>
+                                    </form>
+                                </li>
+                                <li>
+                                    <form th:action="@{/admin/update-role}" method="post" style="margin:0;">
+                                        <input type="hidden" name="id" th:value="${user.id}" />
+                                        <input type="hidden" name="role" value="ADMIN" />
+                                        <button class="dropdown-item" type="submit" th:disabled="${user.role == 'ADMIN'}"><i class="bi bi-person-fill-gear text-warning"></i>Promote to Admin</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Modal -->
+            <div class="modal fade" th:id="'viewModal_' + ${user.id}" tabindex="-1" th:aria-labelledby="'viewModalLabel_' + ${user.id}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg"> <!-- Added modal-lg for wider modal -->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" th:id="'viewModalLabel_' + ${user.id}"><i class="bi bi-person-lines-fill"></i>User Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="info-grid">
+                                <!-- Row 1: Name -->
+                                <i class="bi bi-person-badge-fill"></i>
+                                <div><strong>Name:</strong><span th:text="${user.name}">User Name</span></div>
+
+                                <!-- Row 2: Email -->
+                                <i class="bi bi-envelope-at-fill"></i>
+                                <div><strong>Email:</strong><span th:text="${user.email}">email@example.com</span></div>
+
+                                <!-- Row 3: ID -->
+                                <i class="bi bi-fingerprint"></i>
+                                <div><strong>ID:</strong><span th:text="${user.id}">123</span></div>
+
+                                <!-- Row 4: Role -->
+                                <i class="bi bi-shield-shaded"></i>
+                                <div><strong>Role:</strong><span th:text="${user.role}">USER</span></div>
+
+                                <!-- You can add more details here if available in the user object -->
+                                <!-- Example:
+                                <i class="bi bi-calendar-check-fill"></i>
+                                <div><strong>Joined:</strong> <span th:text="${#dates.format(user.joinDate, 'dd-MMM-yyyy')}">01-Jan-2023</span></div>
+
+                                <i class="bi bi-activity"></i>
+                                <div><strong>Status:</strong> <span th:text="${user.status}">Active</span></div>
+                                -->
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle me-1"></i>Close</button>
+                            <!-- Optionally, add an edit button or other actions -->
+                            <!-- <button type="button" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i>Edit User</button> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Optional: Add a small script to change navbar background on scroll
+    window.addEventListener('scroll', function() {
+        const navbar = document.querySelector('.navbar');
+        if (window.scrollY > 30) { // Adjusted scroll threshold
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // Initialize Bootstrap tooltips if you plan to use them
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+</body>
+</html>

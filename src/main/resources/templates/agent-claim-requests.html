@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claim Requests - Agent</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<style>
+    /* Standard Body Styles */
+    body {
+        background-color: #f0f2f5; /* Light gray background */
+        font-family: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        color: #333;
+        line-height: 1.6;
+        min-height: 100vh;
+    }
+
+    /* Standard Navbar Styles */
+    .navbar {
+        background: rgba(0, 0, 139, 0.8) !important; /* Slightly more opaque dark blue */
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; /* Softer shadow */
+        transition: all 0.3s ease;
+        border-radius: 0.75rem; /* Rounded navbar edges */
+    }
+    .navbar-brand, .navbar-nav .nav-link {
+        color: rgba(255, 255, 255, 0.95) !important; /* Brighter white for text */
+        font-weight: 500;
+        transition: color 0.3s ease, transform 0.2s ease;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+    .navbar-nav .nav-link:hover {
+        color: #ffffff !important; /* Pure white on hover */
+        transform: translateY(-2px); /* Slight lift on hover */
+    }
+    .navbar.scrolled {
+        background: rgba(0, 0, 100, 0.9) !important; /* Darker blue when scrolled */
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* Page Specific Styles */
+    .status-pill {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: inline-block; /* Ensure it respects padding */
+    }
+    .status-pending { background-color: #ffeeba; color: #856404; }
+    .status-approved { background-color: #d4edda; color: #155724; }
+    .status-rejected { background-color: #f8d7da; color: #721c24; }
+    .status-premium-purchased { background-color: #add8e6; color: #00008b;}
+
+
+    .rounded-table {
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); /* Add shadow to the table container */
+    }
+    .rounded-table thead th {
+        background-color: #0d6efd; /* Consistent header background */
+        color: white;
+        font-weight: 600;
+        padding: 1rem;
+    }
+    .rounded-table thead tr:first-child th:first-child {
+        border-top-left-radius: 0.75rem;
+    }
+    .rounded-table thead tr:first-child th:last-child {
+        border-top-right-radius: 0.75rem;
+    }
+    .rounded-table tbody tr:last-child td:first-child {
+        border-bottom-left-radius: 0.75rem;
+    }
+    .rounded-table tbody tr:last-child td:last-child {
+        border-bottom-right-radius: 0.75rem;
+    }
+    /* Hover effect for table rows */
+    .rounded-table tbody tr:hover {
+        background-color: #f5f5f5;
+        transition: background-color 0.2s ease;
+    }
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg mx-auto mt-3 px-4 py-2"
+    style="width: 95%; max-width: 1400px; position: sticky; top: 20px; z-index: 1030;">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="/agent/home"><i class="bi bi-shield-lock-fill me-2"></i>InsuranceApp</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon" style="filter: invert(1);"></span> </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/create-policy}"><i class="bi bi-journal-plus me-1"></i>Policy</a></li>
+                <li class="nav-item"><a class="nav-link active" aria-current="page" th:href="@{/agent/claim-requests}"><i class="bi bi-file-earmark-text-fill me-1"></i>Claims</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/profile}"><i class="bi bi-person-circle me-1"></i>Profile</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/agent/support/tickets}"><i class="bi bi-ticket-fill me-1"></i>User Tickets</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/logout}"><i class="bi bi-box-arrow-right me-1"></i>Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4 mt-4">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">Claim Requests</h2>
+        <p class="text-muted">Manage insurance claims by viewing details, accepting, or rejecting submitted requests.</p>
+    </div>
+
+    <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${message}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="table-responsive shadow-sm rounded-4 bg-white p-3">
+                <table class="table align-middle rounded-table">
+                    <thead>
+                        <tr>
+                            <th>Claim ID</th>
+                            <th>User Name</th>
+                            <th>Policy</th>
+                            <th>Requested On</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="claim : ${claims}">
+                            <td th:text="${claim.id}">CL001</td>
+                            <td th:text="${claim.user.name}">John Doe</td>
+                            <td th:text="${claim.policyName}">Auto Insurance</td>
+                            <td th:text="${#temporals.format(claim.date, 'yyyy-MM-dd HH:mm')}">2025-05-28 14:33</td>
+                            <td>
+                                <span th:text="${claim.status}"
+                                      th:classappend="'status-pill status-' + ${#strings.toLowerCase(claim.status).replace(' ', '-')}"
+                                      >PENDING
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <a th:href="@{'/agent/claim/' + ${claim.id} + '/view'}" class="btn btn-sm btn-info me-2">View Details</a>
+                                </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(claims)}">
+                            <td colspan="6" class="text-center text-muted py-4">No claim requests found.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    window.addEventListener('scroll', function() {
+        const navbar = document.querySelector('.navbar');
+        if (window.scrollY > 30) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+</script>
+</body>
+</html>

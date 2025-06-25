@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment History</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        /* Standard Body Styles */
+        body {
+            background-color: #f0f2f5; /* Light gray background */
+            font-family: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Standard Navbar Styles */
+        .navbar {
+            background: rgba(0, 0, 139, 0.8) !important; /* Slightly more opaque dark blue */
+            border: none !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; /* Softer shadow */
+            transition: all 0.3s ease;
+            border-radius: 0.75rem; /* Rounded navbar edges */
+        }
+        .navbar-brand, .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.95) !important; /* Brighter white for text */
+            font-weight: 500;
+            transition: color 0.3s ease, transform 0.2s ease;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #ffffff !important; /* Pure white on hover */
+            transform: translateY(-2px); /* Slight lift on hover */
+        }
+        .navbar.scrolled {
+            background: rgba(0, 0, 100, 0.9) !important; /* Darker blue when scrolled */
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* Page Specific Styles */
+        .main-card {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            border: none;
+            overflow: hidden; /* Ensures content respects border-radius */
+            animation: fadeIn 0.8s ease-out;
+        }
+        .main-card .card-header {
+            background: linear-gradient(135deg, rgba(0, 0, 139, 0.8), rgba(0, 0, 139, 0.6)); /* Glassy navy header */
+            color: white;
+            padding: 1.75rem 2rem; /* More generous padding */
+            font-weight: 600;
+            border-bottom: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+        .main-card .card-header .card-title {
+            color: white;
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background-color: #e9ecef; /* Light grey header background */
+            font-weight: 600;
+            color: #495057;
+            padding: 1rem 1.5rem; /* Standardized padding */
+            vertical-align: middle;
+            border-bottom: 2px solid #dee2e6; /* Stronger border */
+        }
+        .table tbody td {
+            padding: 1rem 1.5rem; /* Standardized padding */
+            vertical-align: middle;
+        }
+        .table tbody tr:hover {
+            background-color: #f0f2f5; /* Light hover effect */
+        }
+
+        .status-badge {
+            padding: 0.5em 0.9em; /* Adjusted padding */
+            border-radius: 0.5rem; /* More rounded badge */
+            font-size: 0.85em; /* Slightly larger font size */
+            font-weight: 700;
+            line-height: 1;
+            text-transform: capitalize; /* Capitalize status automatically */
+        }
+        .status-succeeded {
+            color: #0f5132; /* Dark green text */
+            background-color: #d1e7dd; /* Light green background */
+        }
+        .status-pending {
+            color: #664d03; /* Dark yellow text */
+            background-color: #fff3cd; /* Light yellow background */
+        }
+        .status-failed, .status-requires_payment_method {
+            color: #842029; /* Dark red text */
+            background-color: #f8d7da; /* Light red background */
+        }
+
+        /* Form Control Styling */
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+            border: 1px solid #ced4da;
+        }
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            border-color: #0d6efd;
+        }
+        .input-group .btn {
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+
+        /* Empty State */
+        .empty-history-message {
+            text-align: center;
+            padding: 3rem;
+            background-color: #e9f2fa; /* Light blue background */
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            color: #6c757d;
+        }
+        .empty-history-message h5 {
+            color: #0d6efd; /* Primary blue heading */
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        /* Pagination Styling */
+        .pagination .page-link {
+            border-radius: 0.5rem;
+            margin: 0 0.25rem;
+            color: #0d6efd; /* Primary blue for links */
+            border-color: #dee2e6;
+            transition: all 0.3s ease;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2);
+        }
+        .pagination .page-link:hover {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            color: #0a58ca;
+            transform: translateY(-1px);
+        }
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #ffffff;
+            border-color: #dee2e6;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg mx-auto mt-3 px-4 py-2"
+        style="width: 95%; max-width: 1400px; position: sticky; top: 20px; z-index: 1030;">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="/user/home"><i class="bi bi-shield-lock-fill me-2"></i>InsuranceApp</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" th:href="@{/policies}"><i class="bi bi-journal-check me-1"></i>Policy</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/user/claims}"><i class="bi bi-file-earmark-text-fill me-1"></i>Claims</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                           <i class="bi bi-headset me-1"></i>Customer Support
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark">
+                            <li><a class="dropdown-item" th:href="@{/user/support/raise}">Create Ticket</a></li>
+                            <li><a class="dropdown-item" th:href="@{/user/support/history}">Ticket History</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/profile}"><i class="bi bi-person-circle me-1"></i>Profile</a></li>
+                    <li class="nav-item"><a class="nav-link active" aria-current="page" th:href="@{/user/payment-history}"><i class="bi bi-clock-history me-1"></i>History</a></li>
+                    <li class="nav-item"><a class="nav-link" th:href="@{/logout}"><i class="bi bi-box-arrow-right me-1"></i>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="card main-card shadow-lg">
+            <div class="card-header">
+                <i class="bi bi-credit-card-fill display-6 me-3"></i>
+                <h2 class="card-title h4 mb-0">Your Payment Transactions</h2>
+            </div>
+            <div class="card-body p-4">
+
+                <div class="row mb-4 align-items-center">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="searchInput" placeholder="Search...">
+                            <button class="btn btn-outline-secondary" type="button" id="clearSearchButton"><i class="bi bi-x-circle-fill me-2"></i>Clear</button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <select class="form-select" id="filterType">
+                            <option value="all">Filter By: All</option>
+                            <option value="policyId">Policy ID</option>
+                            <option value="status">Status</option>
+                            <option value="date">Date (DD-MM-YYYY)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0" id="paymentTable">
+                        <thead>
+                            <tr>
+                                <th scope="col">Policy ID</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Payment ID</th>
+                                <th scope="col">Date & Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p : ${payments}" class="payment-row">
+                                <td class="policy-id" th:text="${p.id}"></td>
+                                <td>
+                                    <span class="fw-bold">₹</span> <span th:text="${#numbers.formatDecimal(p.amount / 100.0, 1, 2, 'POINT')}"></span>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-text"
+                                          th:classappend="${p.status == 'succeeded' ? 'status-succeeded' :
+                                                           (p.status == 'pending' ? 'status-pending' :
+                                                           (p.status == 'requires_payment_method' ? 'status-requires_payment_method' :
+                                                           'status-failed'))}"
+                                          th:text="${#strings.capitalize(p.status).replace('_', ' ')}">Status</span>
+                                </td>
+                                <td>
+                                    <span class="payment-id-text" th:text="${#strings.length(p.transactionId) > 12 ?
+                                                     #strings.substring(p.transactionId, 0, 8) + 'xxxx' +
+                                                     #strings.substring(p.transactionId, #strings.length(p.transactionId) - 4, #strings.length(p.transactionId)) :
+                                                     p.transactionId}"></span>
+                                </td>
+                                <td class="date-time" th:attr="data-date-only=${#temporals.format(p.timestamp, 'dd-MM-yyyy')}">
+                                    <span th:text="${#temporals.format(p.timestamp, 'dd-MM-yyyy HH:mm')}"></span>
+                                </td>
+                            </tr>
+                            <tr id="noPaymentsMessage" style="display: none;">
+                                <td colspan="5" class="empty-history-message">
+                                    <h5><i class="bi bi-info-circle-fill me-2"></i>No Payment Records Found</h5>
+                                    <p>It looks like there are no transactions to display here. Make a payment to see your history!</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <nav aria-label="Payment History Pagination" class="mt-4">
+                    <ul class="pagination justify-content-center" id="paginationControls">
+                        <li class="page-item disabled" id="prevPage">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true"><i class="bi bi-chevron-left"></i> Previous</a>
+                        </li>
+                        <li class="page-item disabled" id="nextPage">
+                            <a class="page-link" href="#">Next <i class="bi bi-chevron-right"></i></a>
+                        </li>
+                    </ul>
+                </nav>
+
+            </div>
+            <div class="card-footer bg-light text-muted text-center py-3">
+                <small>&copy; 2025 AIMS. All rights reserved.</small>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 30) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('searchInput');
+            const filterType = document.getElementById('filterType');
+            const clearSearchButton = document.getElementById('clearSearchButton');
+            const tableBody = document.querySelector('#paymentTable tbody');
+            const allPaymentRows = Array.from(tableBody.querySelectorAll('.payment-row')); // Convert NodeList to Array
+            const noPaymentsMessage = document.getElementById('noPaymentsMessage');
+
+            // Pagination variables
+            let currentPage = 1;
+            const itemsPerPage = 10;
+            let currentVisibleRows = []; // This will hold the rows that should actually be displayed on the current page
+
+            const paginationControls = document.getElementById('paginationControls');
+            const prevPageBtn = document.getElementById('prevPage');
+            const nextPageBtn = document.getElementById('nextPage');
+
+            // Function to hide all rows and then show only the ones for the current page
+            function displayCurrentPageRows() {
+                // Hide all rows first (regardless of currentVisibleRows or allPaymentRows)
+                allPaymentRows.forEach(row => row.style.display = 'none');
+
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+
+                // Show only the rows from the current page of the filtered/searched results
+                const rowsToShowOnThisPage = currentVisibleRows.slice(startIndex, endIndex);
+                
+                rowsToShowOnThisPage.forEach(row => row.style.display = '');
+
+                // Update visibility of the "No payments found" message
+                if (currentVisibleRows.length === 0) {
+                    noPaymentsMessage.style.display = 'table-row';
+                    paginationControls.style.display = 'none'; // Hide pagination if no results
+                } else {
+                    noPaymentsMessage.style.display = 'none';
+                    paginationControls.style.display = 'flex'; // Show pagination if results exist
+                }
+                
+                updatePaginationControls();
+            }
+
+            // Function to update pagination buttons and numbers
+            function updatePaginationControls() {
+                const totalPages = Math.ceil(currentVisibleRows.length / itemsPerPage);
+                
+                // Clear existing page numbers (keep Prev/Next)
+                const existingPageNumbers = paginationControls.querySelectorAll('.page-item:not(#prevPage):not(#nextPage)');
+                existingPageNumbers.forEach(item => item.remove());
+
+                // Add page numbers
+                if (totalPages > 1) {
+                    for (let i = 1; i <= totalPages; i++) {
+                        const pageItem = document.createElement('li');
+                        pageItem.classList.add('page-item');
+                        if (i === currentPage) {
+                            pageItem.classList.add('active');
+                        }
+                        const pageLink = document.createElement('a');
+                        pageLink.classList.add('page-link');
+                        pageLink.href = '#';
+                        pageLink.textContent = i;
+                        pageLink.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            currentPage = i;
+                            displayCurrentPageRows();
+                        });
+                        pageItem.appendChild(pageLink);
+                        paginationControls.insertBefore(pageItem, nextPageBtn);
+                    }
+                }
+
+                // Update Prev/Next button states
+                prevPageBtn.classList.toggle('disabled', currentPage === 1);
+                nextPageBtn.classList.toggle('disabled', currentPage === totalPages || totalPages === 0);
+            }
+
+            // Main function to filter and update the displayed rows
+            function filterAndPaginate() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                const selectedFilter = filterType.value;
+
+                currentVisibleRows = allPaymentRows.filter(row => {
+                    let shouldShow = false;
+
+                    const policyId = row.querySelector('.policy-id').textContent.toLowerCase();
+                    const status = row.querySelector('.status-text').textContent.toLowerCase().replace(/_/g, ' ');
+                    const dateTime = row.querySelector('.date-time').getAttribute('data-date-only').toLowerCase();
+
+                    if (selectedFilter === 'all') {
+                        if (policyId.includes(searchTerm) || status.includes(searchTerm) || dateTime.includes(searchTerm)) {
+                            shouldShow = true;
+                        }
+                    } else if (selectedFilter === 'policyId') {
+                        shouldShow = policyId.includes(searchTerm);
+                    } else if (selectedFilter === 'status') {
+                        shouldShow = status.includes(searchTerm);
+                    } else if (selectedFilter === 'date') {
+                        shouldShow = dateTime.includes(searchTerm);
+                    }
+                    return shouldShow; // Return true/false for filter
+                });
+                
+                currentPage = 1; // Always reset to the first page after filtering
+                displayCurrentPageRows(); // Display the first page of newly filtered results
+            }
+
+            // Event Listeners
+            searchInput.addEventListener('keyup', filterAndPaginate);
+            filterType.addEventListener('change', filterAndPaginate);
+
+            clearSearchButton.addEventListener('click', function() {
+                searchInput.value = ''; // Clear the search input
+                filterType.value = 'all'; // Reset filter type to 'All'
+                filterAndPaginate(); // Re-filter to show all rows (and reset pagination)
+            });
+
+            prevPageBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    displayCurrentPageRows();
+                }
+            });
+
+            nextPageBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const totalPages = Math.ceil(currentVisibleRows.length / itemsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    displayCurrentPageRows();
+                }
+            });
+
+            // Initial call to set up table and pagination
+            filterAndPaginate(); 
+        });
+        /*]]>*/
+    </script>
+</body>
+</html>

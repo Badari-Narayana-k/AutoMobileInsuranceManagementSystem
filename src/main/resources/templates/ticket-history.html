@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Support Tickets</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        /* Standard Body Styles */
+        body {
+            background-color: #f0f2f5; /* Light gray background */
+            font-family: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Standard Navbar Styles */
+        .navbar {
+            background: rgba(0, 0, 139, 0.8) !important; /* Slightly more opaque dark blue */
+            border: none !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; /* Softer shadow */
+            transition: all 0.3s ease;
+            border-radius: 0.75rem; /* Rounded navbar edges */
+        }
+        .navbar-brand, .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.95) !important; /* Brighter white for text */
+            font-weight: 500;
+            transition: color 0.3s ease, transform 0.2s ease;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #ffffff !important; /* Pure white on hover */
+            transform: translateY(-2px); /* Slight lift on hover */
+        }
+        .navbar.scrolled {
+            background: rgba(0, 0, 100, 0.9) !important; /* Darker blue when scrolled */
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* Page Specific Styles */
+        .ticket-list-card {
+            background: rgba(255,255,255,0.85); /* Use your glassy background for the card */
+            backdrop-filter: blur(10px); /* Apply blur for the glassy effect */
+            border: 1px solid rgba(255, 255, 255, 0.2); /* Light border */
+            border-radius: 1rem; /* Consistent rounded corners */
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2); /* Softer shadow */
+            padding: 2rem; /* Consistent padding */
+            animation: fadeIn 0.8s ease-out; /* Add fade-in animation */
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ticket-card {
+            border-radius: 0.75rem; /* Rounded corners for individual ticket cards */
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Lighter shadow for individual cards */
+            border: 1px solid rgba(0,0,0,0.05);
+            background-color: #ffffff; /* White background for individual cards */
+        }
+        .ticket-card:hover {
+            transform: translateY(-5px); /* Lift effect on hover */
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1); /* Stronger shadow on hover */
+        }
+
+        .ticket-card .card-title {
+            color: #0d6efd; /* Primary blue for ticket subject */
+            font-weight: 600;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .ticket-card .card-text strong {
+            color: #212529; /* Darker text for labels */
+        }
+
+        .empty-state {
+            background-color: #e9f2fa; /* Light blue background for empty state */
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .empty-state h4 {
+            color: #0d6efd; /* Primary blue for empty state heading */
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .empty-state p {
+            color: #6c757d; /* Muted text for empty state description */
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+        .empty-state a.btn {
+            background-color: #0d6efd; /* Consistent primary button style */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .empty-state a.btn:hover {
+            background-color: #0a58ca;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg mx-auto mt-3 px-4 py-2"
+    style="width: 95%; max-width: 1400px; position: sticky; top: 20px; z-index: 1030;">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="/user/home"><i class="bi bi-shield-lock-fill me-2"></i>InsuranceApp</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/policies}"><i class="bi bi-journal-check me-1"></i>Policy</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/user/claims}"><i class="bi bi-file-earmark-text-fill me-1"></i>Claims</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle active" aria-current="page" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                       <i class="bi bi-headset me-1"></i>Customer Support
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        <li><a class="dropdown-item" th:href="@{/user/support/raise}">Create Ticket</a></li>
+                        <li><a class="dropdown-item" th:href="@{/user/support/history}">Ticket History</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/logout}"><i class="bi bi-box-arrow-right me-1"></i>Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4 py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="ticket-list-card">
+                <h4 class="mb-4 text-center fw-bold"><i class="bi bi-ticket-detailed-fill me-2"></i>Your Support Tickets</h4>
+
+                <div th:if="${tickets != null and !#lists.isEmpty(tickets)}" class="row g-4">
+                    <div class="col-md-6" th:each="ticket: ${tickets}">
+                        <div class="card ticket-card h-100"> <div class="card-body">
+                                <h5 class="card-title" th:text="${ticket.subject}">Ticket Subject</h5>
+                                <p class="card-text mb-1"><strong>Status:</strong>
+                                    <span th:text="${ticket.status}"
+                                          th:classappend="${ticket.status == 'Responded'} ? 'text-success fw-bold' : 'text-warning fw-bold'">Pending</span>
+                                </p>
+                                <p class="card-text mb-1"><strong>Date:</strong>
+                                    <span th:text="${#temporals.format(ticket.createdAt, 'dd MMM yyyy HH:mm')}">01 Jan 2024 10:30</span>
+                                </p>
+                                <p class="card-text mb-2"><strong>Your Message:</strong><br><span th:text="${ticket.message}">Your Message here....</span></p>
+
+                                <div th:if="${ticket.adminResponse!=null}" class="mt-3 p-3 bg-light rounded border">
+                                    <p class="card-text text-success mb-0"><strong>Admin Response:</strong><br><span th:text="${ticket.adminResponse}">Response Goes here.....</span></p>
+                                </div>
+                                <div th:if="${ticket.adminResponse==null}" class="mt-3 p-3 bg-light rounded border">
+                                    <p class="card-text text-warning mb-0"><strong>Response Pending</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(tickets)}" class="empty-state">
+                    <h4>No tickets raised yet.</h4>
+                    <p>It looks like you haven't submitted any support requests. If you have an issue, please feel free to create a new ticket.</p>
+                    <a th:href="@{/user/support/raise}" class="btn btn-primary">Raise a Support Ticket</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    window.addEventListener('scroll', function() {
+        const navbar = document.querySelector('.navbar');
+        if (window.scrollY > 30) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Support Tickets</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        /* Standard Body Styles */
+        body {
+            background-color: #f0f2f5; /* Light gray background */
+            font-family: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Standard Navbar Styles */
+        .navbar {
+            background: rgba(0, 0, 139, 0.8) !important; /* Slightly more opaque dark blue */
+            border: none !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; /* Softer shadow */
+            transition: all 0.3s ease;
+            border-radius: 0.75rem; /* Rounded navbar edges */
+        }
+        .navbar-brand, .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.95) !important; /* Brighter white for text */
+            font-weight: 500;
+            transition: color 0.3s ease, transform 0.2s ease;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #ffffff !important; /* Pure white on hover */
+            transform: translateY(-2px); /* Slight lift on hover */
+        }
+        .navbar.scrolled {
+            background: rgba(0, 0, 100, 0.9) !important; /* Darker blue when scrolled */
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* Page Specific Styles */
+        .ticket-card {
+            animation: slideIn 0.6s ease-in-out;
+            border-left-width: 6px !important; /* Emphasize the border for cards */
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        /* Renamed from .card:hover for consistency with previous snippets */
+        .card-hover:hover {
+            transform: scale(1.02); /* Slightly reduced scale for subtler effect */
+            transition: 0.3s ease;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1) !important; /* Softer hover shadow */
+        }
+        .dashboard-header {
+            background: linear-gradient(to right, #0d6efd, #0a58ca);
+            color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg mx-auto mt-3 px-4 py-2"
+    style="width: 95%; max-width: 1400px; position: sticky; top: 20px; z-index: 1030;">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="/agent/home"><i class="bi bi-shield-lock-fill me-2"></i>InsuranceApp</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon" style="filter: invert(1);"></span> </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/create-policy}"><i class="bi bi-journal-plus me-1"></i>Policy</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/agent/claim-requests}"><i class="bi bi-file-earmark-text-fill me-1"></i>Claims</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/profile}"><i class="bi bi-person-circle me-1"></i>Profile</a></li>
+                <li class="nav-item"><a class="nav-link active" aria-current="page" th:href="@{/agent/support/tickets}"><i class="bi bi-ticket-fill me-1"></i>User Tickets</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/logout}"><i class="bi bi-box-arrow-right me-1"></i>Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="dashboard-header text-center mb-5">
+        <h2 class="fw-bold">User Ticket Management</h2>
+        <p class="mb-0">Review and respond to customer support tickets.</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4" th:each="ticket:${tickets}">
+            <div class="card shadow-sm border-info h-100 ticket-card card-hover">
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${ticket.subject}">Ticket Subject</h5>
+                    <p class="card-text">
+                        <strong>User Name:</strong> <span th:text="${ticket.user.name}">User</span><br>
+                        <strong>Status:</strong> <span th:text="${ticket.status}">Pending..</span><br>
+                        <strong>Message:</strong> <span th:text="${ticket.message}">Message</span><br>
+                        <form th:action="@{/admin/support/respond/{id}(id=${ticket.id})}" method="post" id="responseForm">
+                            <div th:if="${ticket.status == 'Open'}">
+                                <div class="mb-2">
+                                    <label for="responseTextarea" class="form-label mt-2">Your Response:</label>
+                                    <textarea name="response" id="responseTextarea" class="form-control" rows="3" th:text="${ticket.adminResponse}" placeholder="Enter your response here..." required></textarea>
+                                </div>
+                                <button id="submitButton" type="submit" class="btn btn-outline-success">Submit Response</button>
+                            </div>
+                        </form>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div th:if="${#lists.isEmpty(tickets)}" class="col-12 text-center mt-5">
+            <h4>No active tickets to respond.</h4>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    window.addEventListener('scroll', function() {
+        const navbar = document.querySelector('.navbar');
+        if (window.scrollY > 30) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+</script>
+<script>
+    if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+</script>
+<script>
+    document.getElementById('responseForm').addEventListener('submit', function(event) {
+        const textarea = document.getElementById('responseTextarea');
+        const button = document.getElementById('submitButton');
+
+        // Disable the textarea and button
+        textarea.disabled = true;
+        button.disabled = true;
+    });
+</script>
+</body>
+</html>

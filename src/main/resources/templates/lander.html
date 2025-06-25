@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to InsuranceApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <style>
+        /* Define consistent color variables for easy management */
+        :root {
+            --primary-blue: #0d6efd; /* Bootstrap primary blue */
+            --dark-navy: rgba(0, 0, 139, 0.8); /* Used for navbar */
+            --dark-navy-scrolled: rgba(0, 0, 100, 0.9);
+            --light-bg: #f8f9fa; /* Light background for sections */
+            --off-white: #ffffff; /* Card backgrounds, etc. */
+            --text-dark: #343a40; /* General dark text */
+            --text-muted: #6c757d; /* Lighter text */
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(to bottom right, #eaf2f8, #f8f9fa); /* Softer gradient */
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* --- Navbar Styles (Consistent with other pages) --- */
+        .navbar {
+            background: var(--dark-navy) !important; /* Force consistency */
+            border: none !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+            transition: all 0.3s ease;
+            border-radius: 0.75rem; /* Rounded navbar edges */
+            backdrop-filter: blur(15px); /* Glassy effect */
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .navbar-brand, .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.95) !important;
+            font-weight: 500;
+            transition: color 0.3s ease, transform 0.2s ease;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #ffffff !important;
+            transform: translateY(-2px);
+        }
+        .navbar.scrolled {
+            background: var(--dark-navy-scrolled) !important;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* --- Global Section Spacing --- */
+        .section {
+            padding: 90px 0; /* More generous padding */
+        }
+
+        /* --- Glass Card Effect (Main content cards) --- */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85); /* Less transparent for content */
+            backdrop-filter: blur(12px); /* Slightly less blur for readability */
+            box-shadow: 0 10px 30px rgba(31, 38, 135, 0.15); /* Softer shadow */
+            border-radius: 1.25rem; /* Consistent rounding */
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-3px); /* Gentle lift on hover */
+            box-shadow: 0 12px 35px rgba(31, 38, 135, 0.25);
+        }
+
+        /* --- Hero Section Specifics --- */
+        .hero-section {
+            background: url('https://images.unsplash.com/photo-1620662046132-de90d3d4957e?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center/cover;
+            color: var(--off-white);
+            position: relative;
+            z-index: 1;
+            min-height: 85vh; /* Taller hero section */
+            display: flex;
+            align-items: center; /* Vertically center content */
+        }
+        .hero-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            border-radius: 0; /* No specific border-radius here as it's full width */
+        }
+        .hero-section .glass-card {
+            background: rgba(255, 255, 255, 0.1); /* Very transparent for hero overlay */
+            box-shadow: none; /* No shadow on the hero inner card */
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 3rem 2rem; /* More padding */
+        }
+        .hero-section .display-4 {
+            font-size: 3.5rem; /* Larger font */
+            font-weight: 700;
+            text-shadow: 0 3px 6px rgba(0,0,0,0.4);
+        }
+        .hero-section .lead {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.95);
+        }
+        .hero-section .btn-primary {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            padding: 0.85rem 2.5rem; /* Larger button */
+            font-size: 1.1rem;
+            border-radius: 0.75rem; /* Consistent button radius */
+        }
+
+        /* --- Section Headings --- */
+        .section h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 3.5rem; /* More spacing below heading */
+        }
+        .section p.mx-auto {
+            max-width: 850px; /* Wider text block */
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-muted);
+        }
+
+        /* --- Feature Cards --- */
+        .feature-card {
+            background-color: var(--off-white);
+            border-radius: 1rem;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            padding: 2.5rem; /* More padding */
+            text-align: center;
+            border: none; /* No visible border initially */
+        }
+        .feature-card:hover {
+            transform: translateY(-8px); /* More pronounced lift */
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+            background-color: #e6f0ff; /* Subtle blue on hover */
+        }
+        .feature-card i {
+            font-size: 4rem; /* Even larger icons */
+            margin-bottom: 1.5rem;
+            color: var(--primary-blue); /* Default icon color */
+        }
+        .feature-card h5 {
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* --- Why Choose Us Items --- */
+        .why-us-item-card {
+            background-color: var(--off-white);
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            padding: 1.75rem 2rem; /* Adjusted padding */
+            border: 1px solid rgba(var(--bs-primary-rgb), 0.1); /* Light blue border */
+            display: flex;
+            align-items: center;
+        }
+        .why-us-item-card:hover {
+            transform: translateX(10px); /* Slide effect on hover */
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            background-color: #f8faff;
+        }
+        .why-us-item-card .icon-holder {
+            width: 65px; /* Larger icon holder */
+            height: 65px;
+            min-width: 65px;
+            min-height: 65px;
+            background: linear-gradient(45deg, var(--primary-blue), #5e9bff); /* Gradient for icon background */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 2rem; /* More spacing */
+            color: white;
+            font-size: 2.5rem; /* Icon size */
+            box-shadow: 0 4px 10px rgba(var(--bs-primary-rgb), 0.3);
+        }
+        .why-us-item-card h5 {
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+        }
+        .why-us-item-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 0;
+        }
+
+        /* --- Contact Form Styling --- */
+        .contact-section .glass-card {
+            padding: 3rem 2.5rem; /* More padding for contact form */
+        }
+        .contact-section .form-label {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+        .contact-section .form-control {
+            border-radius: 0.75rem;
+            border: 1px solid #ced4da;
+            padding: 0.85rem 1.25rem;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .contact-section .form-control:focus {
+            box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+            border-color: var(--primary-blue);
+        }
+
+        /* --- Footer --- */
+        .footer {
+            background-color: #0d47a1; /* Deep blue footer */
+            color: white;
+            padding: 2.5rem 0;
+            margin-top: 60px; /* More space above footer */
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg mx-auto mt-3 px-4 py-2"
+    style="width: 95%; max-width: 1400px; position: sticky; top: 20px; z-index: 1030;">
+<div class="container-fluid">
+<a class="navbar-brand text-white fw-bold" href="/"><i class="bi bi-shield-lock-fill me-2"></i>InsuranceApp</a>
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+<span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+</button>
+<div class="collapse navbar-collapse" id="navbarNav">
+<ul class="navbar-nav ms-auto">
+<li class="nav-item"><a class="nav-link" href="#about"><i class="bi bi-info-circle-fill me-1"></i>About</a></li>
+<li class="nav-item"><a class="nav-link" href="#features"><i class="bi bi-star-fill me-1"></i>Features</a></li>
+<li class="nav-item"><a class="nav-link" href="#why-us"><i class="bi bi-question-circle-fill me-1"></i>Why Us</a></li>
+<li class="nav-item"><a class="nav-link" href="#contact"><i class="bi bi-envelope-fill me-1"></i>Contact</a></li>
+<li class="nav-item"><a class="nav-link" th:href="@{/login}"><i class="bi bi-box-arrow-in-right me-1"></i>Login</a></li>
+</ul>
+</div>
+</div>
+</nav>
+ 
+<section class="section hero-section text-center">
+<div class="container my-auto">
+<div class="glass-card p-5 p-md-5 mx-auto" style="max-width: 900px;">
+<h1 class="display-4 fw-bold mb-4">Welcome to InsuranceApp</h1>
+<p class="lead mb-5 mx-auto" style="max-width: 700px;">
+    Your intelligent platform for seamless insurance policy management, real-time claim tracking, and dedicated customer support. Experience clarity and convenience at your fingertips.
+</p>
+<a th:href="@{/login}" class="btn btn-primary btn-lg px-5 rounded-pill"><i class="bi bi-arrow-right-circle-fill me-2"></i>Get Started</a>
+</div>
+</div>
+</section>
+
+---
+
+<section class="section" id="about">
+<div class="container text-center">
+<h2 class="fw-bold">About InsuranceApp</h2>
+<p class="mx-auto">
+            At **InsuranceApp**, we're committed to revolutionizing how you interact with your insurance. Our platform is meticulously designed to offer a **unified, intuitive experience** for customers, agents, and administrators alike. We believe in simplifying complex processes, providing **secure and transparent management** of policies and claims, and delivering **responsive customer support** that puts your needs first. Join us to experience the future of insurance management.
+</p>
+</div>
+</section>
+
+---
+
+<section class="section bg-light" id="features">
+<div class="container text-center">
+<h2 class="fw-bold">Powerful Features at Your Fingertips</h2>
+<div class="row g-4 justify-content-center">
+<div class="col-md-6 col-lg-4">
+<div class="card feature-card h-100">
+<i class="bi bi-journal-check"></i>
+<h5 class="fw-semibold">Comprehensive Policy Management</h5>
+<p>Effortlessly view, manage, and renew all your insurance policies in one centralized dashboard. Stay organized and never miss a payment or renewal date.</p>
+</div>
+</div>
+<div class="col-md-6 col-lg-4">
+<div class="card feature-card h-100">
+<i class="bi bi-file-earmark-medical" style="color: #198754;"></i>
+<h5 class="fw-semibold">Streamlined Claim Tracking</h5>
+<p>Submit new claims quickly and track their status in real-time. Our transparent system keeps you informed every step of the way, from submission to resolution.</p>
+</div>
+</div>
+<div class="col-md-6 col-lg-4">
+<div class="card feature-card h-100">
+<i class="bi bi-headset-fill" style="color: #ffc107;"></i>
+<h5 class="fw-semibold">Responsive Customer Support</h5>
+<p>Get the help you need, when you need it. Raise support tickets directly from the platform and easily monitor their progress with our integrated tracking system.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+---
+
+<section class="section" id="why-us">
+<div class="container">
+<h2 class="fw-bold text-center">Why Choose InsuranceApp?</h2>
+<div class="row gy-4 justify-content-center">
+<div class="col-lg-10">
+<div class="why-us-item-card">
+<div class="icon-holder"><i class="bi bi-lock-fill"></i></div>
+<div>
+<h5 class="mb-1">Robust Security & Privacy</h5>
+<p>Your data is protected with state-of-the-art encryption and stringent privacy protocols, ensuring your information is always safe.</p>
+</div>
+</div>
+</div>
+<div class="col-lg-10">
+<div class="why-us-item-card">
+<div class="icon-holder"><i class="bi bi-clock-history"></i></div>
+<div>
+<h5 class="mb-1">Real-Time Information Access</h5>
+<p>Access your policies, claims, and payment history instantly from any device, giving you complete control and up-to-date information.</p>
+</div>
+</div>
+</div>
+<div class="col-lg-10">
+<div class="why-us-item-card">
+<div class="icon-holder"><i class="bi bi-headset"></i></div>
+<div>
+<h5 class="mb-1">Dedicated 24/7 Support</h5>
+<p>Our comprehensive support system allows you to easily raise and track support tickets, ensuring your queries are addressed promptly and efficiently.</p>
+</div>
+</div>
+</div>
+<div class="col-lg-10">
+<div class="why-us-item-card">
+<div class="icon-holder"><i class="bi bi-layout-text-sidebar"></i></div>
+<div>
+<h5 class="mb-1">Intuitive User-Friendly Interface</h5>
+<p>Navigate effortlessly through modern dashboards and clear, role-specific interfaces designed for a smooth and enjoyable user experience.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+---
+
+<section class="section contact-section" id="contact">
+<div class="container">
+<h2 class="fw-bold text-center">Get in Touch with Us</h2>
+<div class="row justify-content-center">
+<div class="col-md-8 col-lg-6">
+<form class="glass-card p-4 p-md-5">
+<div class="mb-3">
+<label for="name" class="form-label">Name</label>
+<input type="text" class="form-control" id="name" required placeholder="Your Full Name">
+</div>
+<div class="mb-3">
+<label for="email" class="form-label">Email address</label>
+<input type="email" class="form-control" id="email" required placeholder="name@example.com">
+</div>
+<div class="mb-4">
+<label for="message" class="form-label">Your Message</label>
+<textarea class="form-control" id="message" rows="5" required placeholder="Tell us how we can help you..."></textarea>
+</div>
+<button type="submit" class="btn btn-primary w-100"><i class="bi bi-send-fill me-2"></i>Send Message</button>
+</form>
+</div>
+</div>
+</div>
+</section>
+
+---
+
+<footer class="footer text-center">
+<div class="container">
+<p class="mb-0">&copy; 2025 InsuranceApp. All rights reserved.</p>
+</div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Navbar scroll effect
+    window.addEventListener('scroll', function() {
+        const navbar = document.querySelector('.navbar');
+        if (window.scrollY > 30) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+</script>
+</body>
+</html>
