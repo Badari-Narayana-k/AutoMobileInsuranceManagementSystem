@@ -12,7 +12,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value; // Added for @Value
+import org.springframework.beans.factory.annotation.Value; 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -45,11 +45,10 @@ public class ClaimController {
 	@Autowired
 	UserRepository userRepository;
 
-    @Value("${file.upload-dir}") // Injects the upload directory from application.properties
+    @Value("${file.upload-dir}") 
     private String uploadDir;
 
-    // Define max file size here for consistency with client-side, 5MB currently
-    private static final long MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+    private static final long MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 
 
 	 @GetMapping("/user/claims")
@@ -74,7 +73,6 @@ public class ClaimController {
 	 	return "user-claims";
     }
 
-    // Changed to GET mapping for displaying the submission form
     @GetMapping("/user/claims/request/{claimId}")
     public String showClaimSubmissionForm(@PathVariable Long claimId, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("user");
@@ -94,20 +92,17 @@ public class ClaimController {
             return "redirect:/user/claims";
         }
 
-        // Ensure only 'Premium Purchased' claims can be submitted
         if (!"Premium Purchased".equals(claim.getStatus())) {
             redirectAttributes.addFlashAttribute("error", "This claim cannot be submitted. Current status: " + claim.getStatus());
             return "redirect:/user/claims";
         }
 
-        // Get policy details
         Policy policy = policyRepository.findById(claim.getPolicy().getId()).orElse(null);
         if (policy == null) {
             redirectAttributes.addFlashAttribute("error", "Associated policy not found.");
             return "redirect:/user/claims";
         }
 
-        // Pre-populate existing claim details if any
         model.addAttribute("claim", claim);
         model.addAttribute("user", user);
         model.addAttribute("policy", policy);
@@ -115,7 +110,6 @@ public class ClaimController {
         return "claim-submission-form";
     }
 
-    // New POST mapping to handle claim submission from the form
     @PostMapping("/user/claims/submit")
     public String submitClaimDetails(
             @RequestParam("claimId") Long claimId,
@@ -145,46 +139,43 @@ public class ClaimController {
             return "redirect:/user/claims";
         }
 
-        // Update claim details
         claim.setUserPhoneNumber(userPhoneNumber);
         claim.setUserAddress(userAddress);
         claim.setVehicleName(vehicleName);
         claim.setVehicleNumber(vehicleNumber);
         claim.setDescription(description);
-        claim.setDate(LocalDateTime.now()); // Update submission date
+        claim.setDate(LocalDateTime.now());
 
-        // Handle image uploads
         List<String> imagePaths = new ArrayList<>();
         if (proofImages != null && proofImages.length > 0) {
             try {
-                Path uploadPath = Paths.get(uploadDir); // Use the injected uploadDir
+                Path uploadPath = Paths.get(uploadDir);
                 if (!Files.exists(uploadPath)) {
                     Files.createDirectories(uploadPath);
                 }
 
                 for (MultipartFile file : proofImages) {
                     if (!file.isEmpty()) {
-                        // Server-side file size validation
+                        
                         if (file.getSize() > MAX_FILE_SIZE_BYTES) {
                             redirectAttributes.addFlashAttribute("error", "One or more images exceed the maximum allowed size of 5MB.");
-                            return "redirect:/user/claims/request/" + claimId; // Redirect back to form
+                            return "redirect:/user/claims/request/" + claimId; 
                         }
 
                         String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
                         Path filePath = uploadPath.resolve(fileName);
                         Files.copy(file.getInputStream(), filePath);
-                        imagePaths.add("/uploads/" + fileName); // Path for web access through WebConfig
+                        imagePaths.add("/uploads/" + fileName); 
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
                 redirectAttributes.addFlashAttribute("error", "Failed to upload images. Please try again.");
-                return "redirect:/user/claims/request/" + claimId; // Redirect back to form
+                return "redirect:/user/claims/request/" + claimId; 
             }
         }
-        claim.setProofImagePaths(imagePaths); // Set the list of image paths
-
-        claim.setStatus("Pending"); // Set status to Pending
+        claim.setProofImagePaths(imagePaths);
+        claim.setStatus("Pending"); 
         claimRepository.save(claim);
 
         redirectAttributes.addFlashAttribute("message", "Claim submitted successfully! It is now pending agent review.");
@@ -192,14 +183,12 @@ public class ClaimController {
     }
 
 
-    // This method is now effectively replaced by showClaimSubmissionForm and submitClaimDetails
-    // It's still here from previous context, but its direct functionality for new claims is changed.
     @PostMapping("/user/claims/request/{claimId}")
     public String requestClaim(@PathVariable Long claimId, HttpSession session) {
     	Optional<Claim> optionalClaim=claimRepository.findById(claimId);
     	if(optionalClaim.isPresent()) {
     		Claim claim=optionalClaim.get();
-    		claim.setStatus("Pending"); // This might be redundant if submitClaimDetails handles it fully
+    		claim.setStatus("Pending");
     		claimRepository.save(claim);
     	}
     	return "redirect:/user/claims";
@@ -231,7 +220,6 @@ public class ClaimController {
     	return "redirect:/agent/claim-requests";
     }
 
-    // New GET mapping to view a single claim's details for an agent
     @GetMapping("/agent/claim/{id}/view")
     public String viewClaimDetails(@PathVariable Long id, Model model, HttpSession session, RedirectAttributes redirectAttributes) {
         User agent = (User) session.getAttribute("user");
@@ -246,14 +234,14 @@ public class ClaimController {
         }
 
         Claim claim = optionalClaim.get();
-        // Ensure the agent is authorized to view this claim (i.e., it belongs to their policy)
+      
         if (claim.getPolicy().getAgent().getId()!=(agent.getId())) {
             redirectAttributes.addFlashAttribute("error", "You are not authorized to view this claim.");
             return "redirect:/agent/claim-requests";
         }
 
         model.addAttribute("claim", claim);
-        model.addAttribute("proofImages", claim.getProofImagePaths()); // Pass image paths to the model
+        model.addAttribute("proofImages", claim.getProofImagePaths()); 
 
         return "agent-view-claim";
     }
