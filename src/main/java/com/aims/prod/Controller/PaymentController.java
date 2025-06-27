@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes; // Added for RedirectAttributes
+import org.springframework.web.servlet.mvc.support.RedirectAttributes; 
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -31,7 +31,7 @@ public class PaymentController {
     @Value("${stripe.public.key}")
     private String stripePublicKey;
 
-    @Value("${stripe.api.key}") // Assuming you have a secret key property
+    @Value("${stripe.api.key}")
     private String stripeSecretKey;
 
     public PaymentController(PolicyRepository policyRepository, ClaimRepository claimRepository, PaymentRepository paymentRepository) {
@@ -56,7 +56,7 @@ public class PaymentController {
         Policy policy = policyRepository.findById(policyId).orElseThrow();
         User user = (User) session.getAttribute("user");
 
-        // Ensure Stripe API key is set before creating objects
+       
         Stripe.apiKey = stripeSecretKey;
 
         Map<String, Object> customerParams = new HashMap<>();
@@ -76,16 +76,16 @@ public class PaymentController {
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
                 .setCustomer(customer.getId())
-                .setSuccessUrl("http://localhost:8080/payment-success?session_id={CHECKOUT_SESSION_ID}") // Add session_id to success URL
+                .setSuccessUrl("http://localhost:8080/payment-success?session_id={CHECKOUT_SESSION_ID}") 
                 .setCancelUrl("http://localhost:8080/payment-cancel")
-                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD) //ALIPAY works but the currency should be in cny - chineese
+                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()
                                 .setQuantity(1L)
                                 .setPriceData(
                                         SessionCreateParams.LineItem.PriceData.builder()
                                                 .setCurrency("inr")
-                                                .setUnitAmount((long) (policy.getPrice() * 100)) // Stripe expects amount in smallest currency unit (paise)
+                                                .setUnitAmount((long) (policy.getPrice() * 100))
                                                 .setProductData(
                                                         SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                                                 .setName(policy.getPolicyName())
@@ -98,9 +98,6 @@ public class PaymentController {
                 .build();
 
         Session stripeSession = Session.create(params);
-        // It's better to save the checkout session ID directly, and later retrieve the payment intent from it.
-        // For the purpose of refund, we need the PaymentIntent ID, not just the checkout session ID.
-        // We'll retrieve the PaymentIntent ID in the success handler.
         session.setAttribute("checkoutSessionId", stripeSession.getId());
 
         Map<String, String> response = new HashMap<>();
@@ -115,8 +112,7 @@ public class PaymentController {
             Long policyId = (Long) session.getAttribute("policyId");
             Policy policy = policyRepository.findById(policyId).orElseThrow();
 
-            // Retrieve the Checkout Session to get the PaymentIntent ID
-            Stripe.apiKey = stripeSecretKey; // Ensure API key is set
+            Stripe.apiKey = stripeSecretKey;
             Session checkoutSession = Session.retrieve(sessionId);
             String paymentIntentId = checkoutSession.getPaymentIntent();
 
@@ -126,9 +122,7 @@ public class PaymentController {
             claim.setDate(LocalDateTime.now());
             claim.setStatus("Premium Purchased");
             claim.setPolicyName(policy.getPolicyName());
-            // Store the PaymentIntent ID for potential refunds
-            claim.setPaymentIntentId(paymentIntentId); // This is the crucial change
-
+            claim.setPaymentIntentId(paymentIntentId);
             claimRepository.save(claim);
             paymentRepository.save(new Payment(user.getEmail(), "succeeded", (long) policy.getPrice(), paymentIntentId, LocalDateTime.now()));
         } catch (StripeException e) {
@@ -147,12 +141,10 @@ public class PaymentController {
         return "redirect:/user/home";
     }
 
-    // This method would typically be in an AgentController or similar
     @PostMapping("agent/claim/{id}/approve")
     public String approveClaim(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         Claim claim = claimRepository.findById(id).orElse(null);
         if (claim != null) {
-            // Check if the claim is already approved and refunded to prevent double refunds
             if (claim.getStatus().equals("Approved & Refunded")) {
                 redirectAttributes.addFlashAttribute("error", "Claim already approved and refunded.");
                 return "redirect:/agent/claim-requests";
@@ -162,10 +154,9 @@ public class PaymentController {
             claim.setAgentResponseDate(LocalDateTime.now());
             claimRepository.save(claim);
 
-            Stripe.apiKey = stripeSecretKey; // Ensure your Stripe secret key is set
+            Stripe.apiKey = stripeSecretKey; 
 
             try {
-                // Ensure the paymentIntentId is actually the PaymentIntent ID, not the Checkout Session ID
                 String paymentIntentId = claim.getPaymentIntentId();
 
                 if (paymentIntentId == null || paymentIntentId.isEmpty()) {
@@ -185,7 +176,6 @@ public class PaymentController {
 
             } catch (StripeException e) {
                 e.printStackTrace();
-                // Optionally update claim status to reflect refund failure
                 claim.setStatus("Approved (Refund Failed)");
                 claimRepository.save(claim);
                 redirectAttributes.addFlashAttribute("error", "Refund failed: " + e.getMessage());
